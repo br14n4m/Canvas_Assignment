@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Canvas Game</title>
+		<meta charset="utf-8"/>
+		<style>
+			body {text-align: center}
+			canvas { background:url(image.jpg) }
+		</style>
+		<script type="text/javascript">
+			var canvas, ctx;
+			var position = {};
+			var size = 36;
+			var speed = 6;
+			var direction = 'none';
+			var lastdelta = 0;
+			//quest
+			var answer;
+			var num1;
+			var num2;
+			var option1 = 10;
+			var option2 = 11;
+			var option3 = 12;
+			var option4 = 13;
+			var points = 0;
+
+			var render = function(){
+				//clear the entire canvas
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				quest();
+				// draw a circle with positionX
+				ctx.fillStyle = 'red';
+				ctx.beginPath();
+				ctx.arc(position.x, position.y, size, 0, Math.PI*2, false);
+				ctx.fill();
+			};
+
+			var animate = function(delta){
+				//number of ms from last function call
+				var timediff = delta - lastdelta;
+				if(lastdelta > 0){
+					//update the state of all objects
+					move();
+					//redraw the canvas
+					render();
+				}
+				//overwrite lastdelta to the current one
+				lastdelta = delta;
+				//call this function again
+				requestAnimationFrame(animate);
+			};
+
+			var addBackground = function(e){
+				var bg = new Background(e.target, e.target.velocityOffset);
+				backgrounds[e.target.position] = bg;
+			};
+
+			var newQuest = function(e){
+				option1++;
+				option2++;
+				option3++;
+				option4++;
+				answer = randomIntFromInterval(option1,option4)
+				num1 = randomIntFromInterval(5,answer-5);
+				num2 = answer - num1;
+			}
+
+			var quest = function(e){
+				//quest
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'black';
+				ctx.fillText(num1 + ' + ' + num2, canvas.width / 2 - 35, canvas.height / 2 + 10);
+				//left
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'black';
+				ctx.fillText(option4, 10, canvas.height/2 + 10);
+				//top
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'black';
+				ctx.fillText(option1, canvas.width/2 - 20, 30);
+				//right
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'black';
+				ctx.fillText(option2, canvas.width - 40, canvas.height/2 + 10);
+				//down
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'black';
+				ctx.fillText(option3, canvas.width/2 - 10, canvas.height - 10);
+			}
+
+			var checkQuest = function(selection){
+				if(selection == 4)
+					if(option4 == answer)
+						point();
+					else
+						die();
+				if(selection == 1)
+					if(option1 == answer)
+						point();
+					else
+						die();
+				if(selection == 2)
+					if(option2 == answer)
+						point();
+					else
+						die();
+				if(selection == 3)
+					if(option3 == answer)
+						point();
+					else
+						die();
+			}
+
+			var point = function(e)
+			{
+				newQuest();
+				points++;
+				document.getElementById("points").innerHTML = "Points: " + points;
+			}
+
+			var die = function(e)
+			{
+				position.x = canvas.width/2;
+				position.y = canvas.height/2;
+				direction = 'none';
+				option1 = 10;
+				option2 = 11;
+				option3 = 12;
+				option4 = 13;
+				newQuest();
+				points = 0;
+				document.getElementById("points").innerHTML = "Points: " + points;
+			}
+
+			function randomIntFromInterval(min,max)
+			{
+			    return Math.floor(Math.random()*(max-min+1)+min);
+			}
+
+			var move = function(e){
+				if(direction == 'left')
+				{
+					//left
+					position.x -= speed;
+					if(position.x <= 0 + size)
+					{
+						position.x = size;
+						direction = 'right';
+						checkQuest(4)
+					}
+				}
+				if(direction == 'up')
+				{
+					//up
+					position.y -= speed;
+					if(position.y <= 0 + size)
+					{
+						position.y = size;
+						direction = 'down';
+						checkQuest(1);
+					}
+				}
+				if(direction == 'right')
+				{
+					//right
+					position.x += speed;
+					if(position.x >= canvas.height - size)
+					{
+						position.x = canvas.height - size;
+						direction = 'left';
+						checkQuest(2);
+					}
+				}
+				if(direction == 'down')
+				{
+					//down
+					position.y += speed;
+					if(position.y >= canvas.width - size)
+					{
+						position.y = canvas.width - size;
+						direction = 'up';
+						checkQuest(3);
+					}
+				}
+			}
+
+			var keydown = function(e){
+				switch(e.keyCode){
+					case 37:
+						//left
+						direction = 'left';
+						break;
+					case 38:
+						//up
+						direction = 'up';
+						break;
+					case 39:
+						//right
+						direction = 'right';
+						break;
+					case 40:
+						//down
+						direction = 'down';
+						break;
+					default:
+						break;
+				}
+			};
+
+			window.addEventListener('load', function(){
+				canvas = document.getElementById('canvas');
+				ctx = canvas.getContext('2d');
+
+				//set en initial position
+				position.x = canvas.width/2;
+				position.y = canvas.height/2;
+
+				//add eventlistener for keyboard
+				document.addEventListener('keydown', keydown, false);
+
+				//initiate quest
+				newQuest();
+
+				//start animation
+				requestAnimationFrame(animate);
+			}, false);
+		</script>
+	</head>
+	<body>
+		<h1>Canvas Game</h1>
+		<p id="points">Points: 0</p>
+		<canvas id="canvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
+	</body>
+</html>
